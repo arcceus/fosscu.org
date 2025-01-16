@@ -25,6 +25,9 @@ const navItems = [
   {
     name: "Resources",
     link: "/resources",
+  },{
+    name: "Ideas",
+    link: "/ideas",
   },
 ];
 
