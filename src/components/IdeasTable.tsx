@@ -75,7 +75,7 @@ const IdeasTable = () => {
         {/* Main Content */}
         <div className="flex gap-8">
           {/* Left Panel - Categories */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-64 flex-shrink-0 backdrop-blur-sm rounded-lg border border-white/[0.2]">
             <Card className="bg-black/40 p-4">
               <h3 className="text-white font-semibold mb-4">Categories</h3>
               <div className="space-y-2">
@@ -99,7 +99,7 @@ const IdeasTable = () => {
 
           {/* Right Side - Table */}
           <Card className="flex-1 bg-black/40">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto backdrop-blur-sm rounded-lg border border-white/[0.2]">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/10">
