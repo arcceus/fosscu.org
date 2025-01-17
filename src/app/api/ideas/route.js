@@ -1,8 +1,6 @@
-// app/api/ideas/route.js
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
 
-// Initialize Airtable
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY
 }).base(process.env.AIRTABLE_BASE_ID);
@@ -18,10 +16,10 @@ export async function GET() {
       title: record.get('title') || '',
       description: record.get('description') || '',
       difficulty: record.get('difficulty') || '',
-      timeframe: record.get('timeframe') || '',
-      prize: record.get('prize') || '',
+      timeframe: record.get('timeframe') || '0',
+      prize: record.get('prize') || '0',
       status: record.get('status') || 'Done',
-      category: record.get('category') || 'Other',
+      category: Array.isArray(record.get('category')) ? record.get('category') : [record.get('category') || 'Others'],
       comments: record.get('comments') || 0,
       tags: record.get('tags') || []
     }));

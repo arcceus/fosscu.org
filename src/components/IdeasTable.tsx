@@ -12,41 +12,44 @@ const IdeasTable = () => {
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Fetch data from Airtable
   useEffect(() => {
-    // In your IdeasTable component, update the fetch call:
-
-const fetchIdeas = async () => {
-  try {
-    const response = await fetch('/api/ideas');
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.details || data.error || 'Failed to fetch ideas');
-    }
-    
-    setIdeas(data);
-    setLoading(false);
-  } catch (err) {
-    console.error('Error details:', err);
-    setError(err.message);
-    setLoading(false);
-  }
-};
+    const fetchIdeas = async () => {
+      try {
+        const response = await fetch('/api/ideas');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.details || data.error || 'Failed to fetch ideas');
+        }
+        
+        setIdeas(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error details:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
 
     fetchIdeas();
   }, []);
 
   // Compute categories dynamically from ideas data
-  const categories = [
-    { id: 'all', name: 'All', count: ideas.length },
-    ...Array.from(new Set(ideas.map(idea => idea.category)))
-      .map(category => ({
+  const categories = React.useMemo(() => {
+    // Flatten all categories from all ideas into a single array
+    const allCategories = ideas.flatMap(idea => idea.category);
+    // Get unique categories
+    const uniqueCategories = Array.from(new Set(allCategories));
+    
+    return [
+      { id: 'all', name: 'All', count: ideas.length },
+      ...uniqueCategories.map(category => ({
         id: category,
         name: category,
-        count: ideas.filter(idea => idea.category === category).length
+        count: ideas.filter(idea => idea.category.includes(category)).length
       }))
-  ];
+    ];
+  }, [ideas]);
 
   if (loading) {
     return (
@@ -63,6 +66,10 @@ const fetchIdeas = async () => {
       </div>
     );
   }
+
+  const filteredIdeas = ideas.filter(idea => 
+    activeCategory === 'All' || idea.category.includes(activeCategory)
+  );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-24 relative z-[3]">
@@ -117,62 +124,68 @@ const fetchIdeas = async () => {
                     <th className="p-4 text-left text-gray-400 font-medium">Description</th>
                     <th className="p-4 text-left text-gray-400 font-medium">Difficulty</th>
                     <th className="p-4 text-left text-gray-400 font-medium">Timeframe</th>
-                    <th className="p-4 text-left text-gray-400 font-medium">Prize</th>
+                    <th className="p-4 text-left text-gray-400 font-medium">Bounty</th>
                     <th className="p-4 text-left text-gray-400 font-medium">Status</th>
-                    
+                    <th className="p-4 text-left text-gray-400 font-medium">Category</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {ideas
-                    .filter(idea => activeCategory === 'All' || idea.category === activeCategory)
-                    .map((idea, index) => (
-                      <tr 
-                        key={index}
-                        className="group hover:bg-white/5 transition-colors cursor-pointer"
-                      >
-                        <td className="p-4">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-white group-hover:text-green-400 transition-colors">
-                                {idea.title}
-                              </span>
-                              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-green-400" />
-                            </div>
-                            
-                            <div className="flex gap-2 mt-2">
-                              {idea.tags.map((tag, idx) => (
-                                <Badges
-                                  key={idx}
-                                  variant="secondary"
-                                  className="bg-white/5 text-gray-300 hover:bg-white/10"
-                                >
-                                  {tag}
-                                </Badges>
-                              ))}
-                            </div>
+                  {filteredIdeas.map((idea, index) => (
+                    <tr 
+                      key={index}
+                      className="group hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      <td className="p-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-white group-hover:text-green-400 transition-colors">
+                              {idea.title}
+                            </span>
+                            <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-green-400" />
                           </div>
-                        </td>
-                        <td className="p-4 text-green-400 font-medium">{idea.description}</td>
-                        <td className="p-4 text-gray-400">
-                          <Badges variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                            {idea.difficulty} 
-                          </Badges>
-                        </td>
-                        <td className="p-4 text-gray-400">{idea.timeframe}</td>
-                        <td className="p-4 text-green-400 font-medium">{idea.prize}</td>
-                        <td className="p-4">
-                          <Badges variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                            {idea.status}
-                          </Badges>
-                        </td>
-                        <td className="p-4">
-                          {/* <div className="flex items-center gap-2 text-gray-400">
-                            <MessageCircle className="w-4 h-4" />
-                            <span>{idea.comments}</span>
-                          </div> */}
-                        </td>
-                      </tr>
-                    ))}
+                          
+                          
+                        </div>
+                      </td>
+                      <td className="p-4 text-green-400 font-medium">{idea.description}</td>
+                      <td className="p-4 text-gray-400">
+                        <Badges variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                          {idea.difficulty} 
+                        </Badges>
+                      </td>
+                      <td className="p-4 text-gray-400">{idea.timeframe}</td>
+                      <td className="p-4 text-green-400 font-medium">${idea.prize}</td>
+                      <td className="p-4">
+                        <Badges variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                          {idea.status}
+                        </Badges>
+                      </td>
+                      <td>
+                      <div className="flex gap-2 mt-2">
+                            {/* Display categories as badges */}
+                            {idea.category.map((cat, idx) => (
+                              <Badges
+                                key={idx}
+                                variant="secondary"
+                                className="bg-white/5 text-gray-300 hover:bg-white/10"
+                              >
+                                {cat}
+                              </Badges>
+                            ))}
+                            {/* Display tags */}
+                            {idea.tags.map((tag, idx) => (
+                              <Badges
+                                key={`tag-${idx}`}
+                                variant="secondary"
+                                className="bg-white/5 text-gray-300 hover:bg-white/10"
+                              >
+                                {tag}
+                              </Badges>
+                            ))}
+                          </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
